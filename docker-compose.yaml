@@ -1,0 +1,51 @@
+services:
+  notification-api:
+    build:
+      context: ./NotificationAPI
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=notifications_db;Username=postgres;Password=postgres
+
+  email-channel:
+    build:
+      context: ./EmailChannelService
+      dockerfile: Dockerfile
+    ports:
+     - "6000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+  # push-channel:
+  #   build:
+  #     context: ./PushChannelService
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: notifications_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: masstransit/rabbitmq
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+volumes:
+  postgres-data:
