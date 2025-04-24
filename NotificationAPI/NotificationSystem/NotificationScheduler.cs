@@ -8,26 +8,20 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NotificationAPI.Services
+namespace NotificationAPI.NotificationSystem
 {
     public class NotificationScheduler : BackgroundService
     {
-        //private readonly INotificationRepository _repository;
-        //private readonly INotificationSender _sender;
         private readonly ILogger<NotificationScheduler> _logger;
         private readonly IServiceScopeFactory _scopeFactory;
 
         private static readonly TimeSpan _pollingInterval = TimeSpan.FromSeconds(10);
 
         public NotificationScheduler(
-            //INotificationRepository repository,
             IServiceScopeFactory scopeFactory,
-            //INotificationSender sender, 
             ILogger<NotificationScheduler> logger)
         {
-            //_repository = repository;
             _scopeFactory = scopeFactory;
-            //_sender = sender;
             _logger = logger;
         }
 
@@ -48,28 +42,21 @@ namespace NotificationAPI.Services
 
                     foreach (var notification in notifications)
                     {
-                        await notificationSender.ProcessAsync(notification);
-
-                        //notification.RetryCount++;
-
-                        //if (success)
-                        //{
-                        //    notification.SentAt = DateTime.UtcNow;
-                        //    notification.Status = NotificationStatus.Sent;
-                        //}
-                        //else if (notification.RetryCount >= 3)
-                        //{
-                        //    notification.Status = NotificationStatus.Failed;
-                        //}
-
-                        //notification.ForceSend = false;
-
-                        await notificationRepo.UpdateAsync(notification);
+                        try
+                        {
+                            await notificationRepo.UpdateAsync(notification);
+                            await notificationSender.ProcessAsync(notification);
+                        }
+                        catch(InvalidOperationException)
+                        {
+                            await notificationRepo.RemoveAsync(notification);
+                            continue;
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error during notification processing cycle");
+                    _logger.LogError(ex, "Error during notification processing");
                 }
 
                 await Task.Delay(_pollingInterval, stoppingToken);

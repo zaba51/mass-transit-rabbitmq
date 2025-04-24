@@ -1,29 +1,28 @@
 ﻿using MassTransit;
 using Shared.Contracts;
-using System.Diagnostics.Metrics;
 
-namespace EmailChannelService
+namespace PushChannelService
 {
-    public class EmailNotificationConsumer : IConsumer<EmailNotificationMessage>
+    public class PushNotificationConsumer : IConsumer<PushNotificationMessage>
     {
         private readonly NotificationMetrics _metrics;
 
         private readonly IPublishEndpoint _publishEndpoint;
         private static readonly Random _random = new();
 
-        public EmailNotificationConsumer(IPublishEndpoint publishEndpoint, NotificationMetrics metrics)
+        public PushNotificationConsumer(IPublishEndpoint publishEndpoint, NotificationMetrics metrics)
         {
             _publishEndpoint = publishEndpoint;
             _metrics = metrics;
         }
-        public async Task Consume(ConsumeContext<EmailNotificationMessage> context)
+        public async Task Consume(ConsumeContext<PushNotificationMessage> context)
         {
             if (_random.NextDouble() < 0.5)
             {
-                throw new InvalidOperationException("Email send failed", null);
+                throw new InvalidOperationException("Push send failed", null);
             }
 
-            Console.WriteLine($"[EmailChannel] Email sent to {context.Message.Recipient}");
+            Console.WriteLine($"[PushChannel] Push sent to {context.Message.Recipient}");
             _metrics.RecordSuccess();
 
             await _publishEndpoint.Publish(new NotificationStatusEvent

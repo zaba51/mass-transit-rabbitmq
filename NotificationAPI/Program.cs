@@ -1,6 +1,8 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using NotificationAPI.DbContexts;
+using NotificationAPI.NotificationSystem;
+using NotificationAPI.NotificationSystem.Channels;
 using NotificationAPI.Repositories;
 using NotificationAPI.Scheduler.Channels;
 using NotificationAPI.Scheduler.Sender;
@@ -21,22 +23,25 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationSender, NotificationSender>();
 builder.Services.AddScoped<INotificationChannel, EmailNotificationChannel>();
-
-//builder.Services.AddScoped<INotificationChannelDispatcher, Notifi|cationChannelDispatcher>();
-
-//builder.Services.AddScoped<INotificationChannelSender, EmailChannelSender>();
-//builder.Services.AddScoped<INotificationChannelSender, PushChannelSender>();
+builder.Services.AddScoped<INotificationChannel, PushNotificationChannel>();
 
 builder.Services.AddHostedService<NotificationScheduler>();
 
 builder.Services.AddMassTransit(x =>
 {
+    x.AddConsumer<NotificationStatusConsumer>();
+
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("localhost", h =>
         {
             h.Username("guest");
             h.Password("guest");
+        });
+
+        cfg.ReceiveEndpoint("notification-status", e =>
+        {
+            e.ConfigureConsumer<NotificationStatusConsumer>(context);
         });
 
         cfg.ConfigureEndpoints(context);
@@ -46,10 +51,10 @@ builder.Services.AddMassTransit(x =>
             s.UseRoutingKeyFormatter((context) =>  "email_queue");
         });
 
-        //cfg.Send<PushNotificationMessage>(s =>
-        //{
-        //    s.UseRoutingKeyFormatter((context, message) => "push_queue");
-        //});
+        cfg.Send<PushNotificationMessage>(s =>
+        {
+            s.UseRoutingKeyFormatter((context) => "push_queue");
+        });
     });
 });
 
@@ -72,7 +77,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
 app.MapControllers();

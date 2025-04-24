@@ -6,8 +6,9 @@ namespace NotificationAPI.Repositories
     {
         public Task<IEnumerable<Notification>> GetAllAsync();
         public Task<Notification?> GetByIdAsync(Guid Id);
-        public Task<Notification> AddAsync(Notification product);
+        public Task<Notification> AddAsync(Notification notification);
         public Task<List<Notification>> GetPendingNotificationsAsync(DateTime nowUtc);
-        public Task<Notification?> UpdateAsync(Notification product);
+        public Task RemoveAsync(Notification notification);
+        public Task<Notification?> UpdateAsync(Notification notification);
     }
 }

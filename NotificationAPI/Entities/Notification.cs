@@ -13,6 +13,7 @@ namespace NotificationAPI.Entities
         Sent = 1,
         Failed = 2,
         Cancelled = 3,
+        Processing = 4
     }
 
     public class Notification
@@ -24,13 +25,8 @@ namespace NotificationAPI.Entities
         public DateTime ScheduledAtUtc { get; set; }
         public string TimeZone { get; set; }
 
-
         public NotificationPriority Priority { get; set; } = NotificationPriority.Low;
-
         public DateTime? SentAt { get; set; }
-
-        public int RetryCount { get; set; } = 0;
-
         public NotificationStatus Status { get; set; } = NotificationStatus.Scheduled;
         public bool ForceSend { get; set; } = false;
     }

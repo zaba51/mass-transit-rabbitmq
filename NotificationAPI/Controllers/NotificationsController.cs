@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NotificationAPI.DbContexts;
-using NotificationAPI.Entities;
 using NotificationAPI.Models;
 using NotificationAPI.Repositories;
 using NotificationAPI.Services;
@@ -51,28 +49,14 @@ namespace NotificationAPI.Controllers
         [HttpPost("{id}/force-send")]
         public async Task<IActionResult> ForceSend(Guid id)
         {
-            //var notification = await _context.Notifications.FindAsync(id);
-            //if (notification == null) return NotFound();
-
-            //if (notification.Status is NotificationStatus.Sent or NotificationStatus.Cancelled)
-            //    return BadRequest("Cannot force-send already sent or canceled notification");
-
-            //notification.ForceSend = true;
-            //await _context.SaveChangesAsync();
+            await _notificationService.ForceSend(id);
             return Ok();
         }
 
         [HttpPost("{id}/cancel")]
         public async Task<IActionResult> Cancel(Guid id)
         {
-            //var notification = await _context.Notifications.FindAsync(id);
-            //if (notification == null) return NotFound();
-
-            //if (notification.Status == NotificationStatus.Cancelled)
-            //    return BadRequest("Cannot cancel already sent notification");
-
-            //notification.Status = NotificationStatus.Cancelled;
-            //await _context.SaveChangesAsync();
+            await _notificationService.CancelNotification(id);
             return Ok();
         }
 

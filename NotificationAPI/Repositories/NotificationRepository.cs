@@ -25,36 +25,41 @@ namespace NotificationAPI.Repositories
             return await _context.Notifications.FindAsync(id);
         }
 
-        public async Task<Notification> AddAsync(Notification product)
+        public async Task<Notification> AddAsync(Notification notification)
         {
-            _context.Notifications.Add(product);
+            _context.Notifications.Add(notification);
             await _context.SaveChangesAsync();
-            return product;
+            return notification;
         }
         public async Task<List<Notification>> GetPendingNotificationsAsync(DateTime nowUtc)
         {
             return await _context.Notifications
                 .Where(n =>
                     n.Status == NotificationStatus.Scheduled &&
-                    !n.ForceSend && n.ScheduledAtUtc <= nowUtc ||
-                    n.ForceSend
+                    (n.ScheduledAtUtc <= nowUtc || n.ForceSend)
                 )
-                .Where(n => n.RetryCount < 3)
                 .OrderByDescending(n => n.Priority)
                 .ThenBy(n => n.ScheduledAtUtc)
                 .ToListAsync();
         }
-        public async Task<Notification?> UpdateAsync(Notification product)
+        public async Task<Notification?> UpdateAsync(Notification notification)
         {
-            var existingProduct = await _context.Notifications.FindAsync(product.Id);
-            if (existingProduct == null) return null;
+            var existingnotification = await _context.Notifications.FindAsync(notification.Id);
+            if (existingnotification == null) return null;
 
-            existingProduct.SentAt = product.SentAt;
-            existingProduct.RetryCount = product.RetryCount;
+            existingnotification.SentAt = notification.SentAt;
 
             await _context.SaveChangesAsync();
-            return existingProduct;
+            return existingnotification;
         }
 
+        public async Task RemoveAsync(Notification notification)
+        {
+            var existingnotification = await _context.Notifications.FindAsync(notification.Id);
+            if (existingnotification == null) return;
+            _context.Notifications.Remove(notification);
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

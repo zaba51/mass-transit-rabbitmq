@@ -44,5 +44,30 @@ namespace NotificationAPI.Services
 
             return notification;
         }
+        public async Task CancelNotification(Guid Id)
+        {
+            var notification = await _notificationRepository.GetByIdAsync(Id);
+            if (notification == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            notification.Status = NotificationStatus.Cancelled;
+
+            await _notificationRepository.UpdateAsync(notification);
+        }
+
+        public async Task ForceSend(Guid Id)
+        {
+            var notification = await _notificationRepository.GetByIdAsync(Id);
+            if (notification == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            notification.ForceSend = true;
+
+            await _notificationRepository.UpdateAsync(notification);
+        }
     }
 }
